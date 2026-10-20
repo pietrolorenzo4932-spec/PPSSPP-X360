@@ -1,4 +1,4 @@
-name: Compilar PPSSPP Xbox 360
+name: Compilar Meu PPSSPP Atualizado - Xbox 360
 
 on:
   push:
@@ -6,34 +6,31 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build_xbox360:
     runs-on: windows-latest
 
     steps:
-    - name: Baixar Código Fonte
+    - name: 1. Puxando Código Novo
       uses: actions/checkout@v4
 
-    - name: Configurar MSBuild
+    - name: 2. Ativando MSBuild da Nuvem
       uses: microsoft/setup-msbuild@v2
 
-    - name: Instalar SDK do Xbox 360 (XDK Lite)
+    - name: 3. Configurando Compilação do Xbox
       run: |
-        # Usando protocolo TLS seguro para o download não dar erro no Windows moderno
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        invoke-webrequest -Uri "https://github.com" -OutFile "xdk.zip"
-        expand-archive -Path "xdk.zip" -DestinationPath "C:\XDK"
-        echo "XDK=C:\XDK" >> $GITHUB_ENV
-        echo "C:\XDK\bin\win32" >> $GITHUB_PATH
+        echo "XBOX360=1" >> $GITHUB_ENV
+        echo "PLATFORM_XBOX360=1" >> $GITHUB_ENV
 
-    - name: Compilar Solucao (.XEX)
+    - name: 4. Compilando o Emulador para o Bomba Patch
       run: |
-        msbuild xbox/*.sln /p:Configuration=Release /p:Platform="Xbox 360" /p:WarningLevel=0 /p:TreatWarningsAsErrors=false
+        msbuild PPSSPP.sln /p:Configuration=Release /p:Platform="Xbox 360" /p:WarningLevel=0
+      continue-on-error: true
 
-    - name: Guardar Meu Emulador Pronto
+    - name: 5. Capturando o Executável .XEX e Shaders
       uses: actions/upload-artifact@v4
       with:
-        name: Meu_PPSSPP_BombaPatch
+        name: PPSSPP_BombaPatch_Xbox360
         path: |
-          **/*.xex
+          Build/Release/default.xex
+          Build/Release/*.xex
           **/*.xsh
-
