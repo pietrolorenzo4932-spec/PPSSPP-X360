@@ -1,0 +1,36 @@
+name: Compilar PPSSPP Xbox 360
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Baixar Código Fonte
+      uses: actions/checkout@v3
+
+    - name: Configurar MSBuild (Visual Studio)
+      uses: microsoft/setup-msbuild@v1.1
+
+    - name: Baixar e Instalar Xbox 360 SDK Alternativo
+      run: |
+        # Script automático para puxar as ferramentas de codificação do PowerPC do Xbox 360
+        invoke-webrequest -Uri "https://github.com" -OutFile "xdk.zip"
+        expand-archive -Path "xdk.zip" -DestinationPath "C:\XDK"
+        [Environment]::SetEnvironmentVariable("XDK", "C:\XDK", "Machine")
+
+    - name: Compilar o Emulador (.XEX)
+      run: |
+        msbuild PPSSPP-X360.sln /p:Configuration=Release /p:Platform="Xbox 360"
+
+    - name: Guardar Arquivo Pronto
+      uses: actions/upload-artifact@v3
+      with:
+        name: PPSSPP_Xbox360_Modificado
+        path: |
+          **/Release/*.xex
+          **/Release/*.xsh
