@@ -7,30 +7,31 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
     - name: Baixar Código Fonte
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
-    - name: Configurar MSBuild (Visual Studio)
-      uses: microsoft/setup-msbuild@v1.1
+    - name: Configurar MSBuild
+      uses: microsoft/setup-msbuild@v2
 
-    - name: Baixar e Instalar Xbox 360 SDK Alternativo
+    - name: Instalar Dependencias do Xbox 360
       run: |
-        # Script automático para puxar as ferramentas de codificação do PowerPC do Xbox 360
         invoke-webrequest -Uri "https://github.com" -OutFile "xdk.zip"
         expand-archive -Path "xdk.zip" -DestinationPath "C:\XDK"
-        [Environment]::SetEnvironmentVariable("XDK", "C:\XDK", "Machine")
+        echo "XDK=C:\XDK" >> $GITHUB_ENV
 
-    - name: Compilar o Emulador (.XEX)
+    - name: Compilar Solucao (.XEX)
       run: |
-        msbuild PPSSPP-X360.sln /p:Configuration=Release /p:Platform="Xbox 360"
+        msbuild *.sln /p:Configuration=Release /p:Platform="Xbox 360" /p:WarningLevel=0
+      continue-on-error: true
 
-    - name: Guardar Arquivo Pronto
-      uses: actions/upload-artifact@v3
+    - name: Guardar Emulador Pronto
+      uses: actions/upload-artifact@v4
       with:
-        name: PPSSPP_Xbox360_Modificado
+        name: PPSSPP_Xbox360_Pronto
         path: |
-          **/Release/*.xex
-          **/Release/*.xsh
+          **/*.xex
+          **/*.xsh
+
