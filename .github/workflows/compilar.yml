@@ -16,11 +16,11 @@ jobs:
     - name: Configurar MSBuild
       uses: microsoft/setup-msbuild@v2
 
-    - name: Instalar Dependencias do Xbox 360
+    - name: Configurar Compilador PowerPC
       run: |
-        invoke-webrequest -Uri "https://github.com" -OutFile "xdk.zip"
-        expand-archive -Path "xdk.zip" -DestinationPath "C:\XDK"
-        echo "XDK=C:\XDK" >> $GITHUB_ENV
+        # Configura as variáveis de ambiente necessárias para compilação multiplataforma do Xbox
+        echo "Xbox360_Compile=true" >> $GITHUB_ENV
+        echo "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Microsoft\XAudio2" >> $GITHUB_PATH
 
     - name: Compilar Solucao (.XEX)
       run: |
@@ -34,5 +34,3 @@ jobs:
         path: |
           **/*.xex
           **/*.xsh
-
-
