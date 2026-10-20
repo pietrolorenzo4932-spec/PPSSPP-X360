@@ -7,31 +7,32 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
     - name: Baixar Código Fonte
       uses: actions/checkout@v4
 
-    - name: Configurar MSBuild
+    - name: Configurar MSBuild Antigo
       uses: microsoft/setup-msbuild@v2
 
-    - name: Configurar Compilador PowerPC
+    - name: Instalar SDK do Xbox 360 (XDK Lite)
       run: |
-        # Configura as variáveis de ambiente necessárias para compilação multiplataforma do Xbox
-        echo "Xbox360_Compile=true" >> $GITHUB_ENV
-        echo "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Microsoft\XAudio2" >> $GITHUB_PATH
+        # Baixa as ferramentas PowerPC necessárias que corrigem a compilação
+        invoke-webrequest -Uri "https://github.com" -OutFile "xdk.zip"
+        expand-archive -Path "xdk.zip" -DestinationPath "C:\XDK"
+        echo "XDK=C:\XDK" >> $GITHUB_ENV
+        echo "C:\XDK\bin\win32" >> $GITHUB_PATH
 
     - name: Compilar Solucao (.XEX)
       run: |
-        msbuild *.sln /p:Configuration=Release /p:Platform="Xbox 360" /p:WarningLevel=0
-      continue-on-error: true
+        # Entra na pasta xbox e compila ignorando os erros de compatibilidade de código antigo
+        msbuild xbox/*.sln /p:Configuration=Release /p:Platform="Xbox 360" /p:WarningLevel=0 /p:TreatWarningsAsErrors=false
 
-    - name: Guardar Emulador Pronto
+    - name: Guardar Meu Emulador Pronto
       uses: actions/upload-artifact@v4
       with:
-        name: PPSSPP_Xbox360_Pronto
+        name: Meu_PPSSPP_BombaPatch
         path: |
           **/*.xex
           **/*.xsh
-
