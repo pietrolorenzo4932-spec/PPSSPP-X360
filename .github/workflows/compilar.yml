@@ -7,18 +7,19 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2019
+    runs-on: windows-latest
 
     steps:
     - name: Baixar Código Fonte
       uses: actions/checkout@v4
 
-    - name: Configurar MSBuild Antigo
+    - name: Configurar MSBuild
       uses: microsoft/setup-msbuild@v2
 
     - name: Instalar SDK do Xbox 360 (XDK Lite)
       run: |
-        # Baixa as ferramentas PowerPC necessárias que corrigem a compilação
+        # Usando protocolo TLS seguro para o download não dar erro no Windows moderno
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         invoke-webrequest -Uri "https://github.com" -OutFile "xdk.zip"
         expand-archive -Path "xdk.zip" -DestinationPath "C:\XDK"
         echo "XDK=C:\XDK" >> $GITHUB_ENV
@@ -26,7 +27,6 @@ jobs:
 
     - name: Compilar Solucao (.XEX)
       run: |
-        # Entra na pasta xbox e compila ignorando os erros de compatibilidade de código antigo
         msbuild xbox/*.sln /p:Configuration=Release /p:Platform="Xbox 360" /p:WarningLevel=0 /p:TreatWarningsAsErrors=false
 
     - name: Guardar Meu Emulador Pronto
@@ -36,3 +36,4 @@ jobs:
         path: |
           **/*.xex
           **/*.xsh
+
